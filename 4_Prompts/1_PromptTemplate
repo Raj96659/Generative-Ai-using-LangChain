@@ -1,0 +1,43 @@
+# load_dotenv allows your Python script to read environment variables from a .env file.
+from dotenv import load_dotenv
+
+# os lets you access environment variables (like API keys).
+import os
+
+# ChatGroq is the LLM wrapper class for interacting with Groq-hosted models such as Llama 3.
+from langchain_groq import ChatGroq
+
+# PromptTemplate is used to structure and parameterize prompts in a reusable, clean format.
+from langchain_core.prompts import PromptTemplate
+
+# StrOutputParser converts the LLM response into a standard string for easy display or use.
+from langchain_core.output_parsers import StrOutputParser
+
+
+# This loads variables from the .env file into the runtime environment, so sensitive data like API keys is not hard-coded in your script.
+load_dotenv()
+
+llm =ChatGroq(
+    model = "llama-3.1-8b-instant",
+    temperature = 0.5,
+    max_tokens = 200,
+    api_key=os.getenv("GROQ_API_KEY")
+)
+
+prompt = PromptTemplate(
+    template=(
+        "You are an experienced medical practitioner. "
+        "Based on the symptoms and age provided:\n"
+        "Symptoms: {symptoms}\n"
+        "Age: {age}\n\n"
+        "Suggest possible over-the-counter medications (if any), home remedies, "
+        "and when it is important to seek a doctor. "
+        "Include a medical safety disclaimer."
+    ),
+    input_variables=["symptoms", "age"]
+)
+
+parser = StrOutputParser()
+
+chain = prompt | llm | parser
+chain.invoke({'symptoms':'headache','age':55})
